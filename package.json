@@ -5,7 +5,7 @@
   "main": "index.node6-compatible.js",
   "scripts": {
     "test": "jest",
-    "build": "webpack --progress && cp example/index.html dist/index.html",
+    "build": "webpack --progress && node copy-html.js",
     "start": "webpack serve",
     "lint": "eslint index.js index.test.js webpack.config.js --fix",
     "build-src": "babel index.js --out-file index.node6-compatible.js"
@@ -32,8 +32,8 @@
     "jquery": "^3.5.1",
     "raw-loader": "^4.0.2",
     "uglify-js": "^3.12.3",
-    "webpack": "^5.11.1",
-    "webpack-cli": "4.3.0",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^3.11.1"
   },
   "peerDependencies": {
