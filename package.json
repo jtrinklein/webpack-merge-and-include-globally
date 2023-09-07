@@ -1,5 +1,5 @@
 {
-  "name": "webpack-merge-and-include-globally",
+  "name": "updated-webpack-merge-and-include-globally",
   "version": "2.3.4",
   "description": "Merge multiple files (js,css..) into single file to include somewhere",
   "main": "index.node6-compatible.js",
