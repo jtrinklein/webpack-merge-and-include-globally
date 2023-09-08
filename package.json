@@ -13,7 +13,9 @@
   "engines": {
     "node": ">=16"
   },
-  "contributors": [],
+  "contributors": [
+    "James Trinklein (https://github.com/jtrinklein)"
+  ],
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
