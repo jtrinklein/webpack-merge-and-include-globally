@@ -1,13 +1,6 @@
-jest.mock('fs');
-jest.mock('glob');
+const transformFiles = require('./transform-files.js');
 
-const fs = require('fs');
-const glob = require('glob');
-
-const MergeIntoSingle = require('./index.node6-compatible.js');
-// const MergeIntoSingle = require('./index.js');
-
-describe('MergeIntoFile', () => {
+describe('transformFiles', () => {
   const pathToFiles = {
     'file1.js': ['1.js'],
     'file2.js': ['2.js'],
@@ -21,11 +14,29 @@ describe('MergeIntoFile', () => {
     '4.css': 'FILE_4_TEXT',
   };
 
-  fs.readFile.mockImplementation((fileName, options, cb) => cb(null, fileToContent[fileName]));
-  glob.mockImplementation((path, options, cb) => cb(null, pathToFiles[path]));
+  const getTransformerOptions = (overrides) => {
+    return ({
+      readFile: jest.fn((fileName) => Promise.resolve(fileToContent[fileName])),
+      glob: jest.fn((path) => Promise.resolve(pathToFiles[path])),
+      compiler: {
+        webpack: {
+          util: {
+            createHash: () => ({
+              update: jest.fn(),
+              digest: jest.fn(() => '#filehash#'),
+            }),
+          }
+        }
+      },
+      compilation: {
+        assets: {}
+      },
+      ...overrides,
+    })
+  };
 
   it('should succeed merging using mock content', (done) => {
-    const instance = new MergeIntoSingle({
+    const options = {
       files: {
         'script.js': [
           'file1.js',
@@ -35,24 +46,22 @@ describe('MergeIntoFile', () => {
           '*.css',
         ],
       },
-    });
-    instance.apply({
-      plugin: (event, fun) => {
-        const obj = {
-          assets: {},
-        };
-        fun(obj, (err) => {
-          expect(err).toEqual(undefined);
-          expect(obj.assets['script.js'].source()).toEqual('FILE_1_TEXT\nFILE_2_TEXT');
-          expect(obj.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
-          done();
-        });
+    };
+
+    const transformerOptions = getTransformerOptions({
+      options,
+      callback: (err) => {
+        expect(err).toEqual(undefined);
+        expect(transformerOptions.compilation.assets['script.js'].source()).toEqual('FILE_1_TEXT\nFILE_2_TEXT');
+        expect(transformerOptions.compilation.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
+        done();
       },
     });
+    transformFiles(transformerOptions);
   });
 
   it('should succeed merging using mock content with a custom separator', (done) => {
-    const instance = new MergeIntoSingle({
+    const options = {
       separator: '\n;\n',
       files: {
         'script.js': [
@@ -60,23 +69,22 @@ describe('MergeIntoFile', () => {
           'file2.js',
         ],
       },
-    });
-    instance.apply({
-      plugin: (event, fun) => {
-        const obj = {
-          assets: {},
-        };
-        fun(obj, (err) => {
-          expect(err).toEqual(undefined);
-          expect(obj.assets['script.js'].source()).toEqual('FILE_1_TEXT\n;\nFILE_2_TEXT');
-          done();
-        });
+    };
+    
+    const transformerOptions = getTransformerOptions({
+      options,
+      callback: (err) => {
+        expect(err).toEqual(undefined);
+        expect(transformerOptions.compilation.assets['script.js'].source()).toEqual('FILE_1_TEXT\n;\nFILE_2_TEXT');
+        done();
       },
     });
+    transformFiles(transformerOptions);
+
   });
 
   it('should succeed merging using mock content with transform', (done) => {
-    const instance = new MergeIntoSingle({
+    const options = {
       files: {
         'script.js': [
           'file1.js',
@@ -89,24 +97,22 @@ describe('MergeIntoFile', () => {
       transform: {
         'script.js': (val) => `${val.toLowerCase()}`,
       },
-    });
-    instance.apply({
-      plugin: (event, fun) => {
-        const obj = {
-          assets: {},
-        };
-        fun(obj, (err) => {
-          expect(err).toEqual(undefined);
-          expect(obj.assets['script.js'].source()).toEqual('file_1_text\nfile_2_text');
-          expect(obj.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
-          done();
-        });
+    };
+    
+    const transformerOptions = getTransformerOptions({
+      options,
+      callback: (err) => {
+        expect(err).toEqual(undefined);
+        expect(transformerOptions.compilation.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
+        done();
       },
     });
+    transformFiles(transformerOptions);
   });
 
   it('should succeed merging using mock content with async transform', (done) => {
-    const instance = new MergeIntoSingle({
+
+    const options = {
       files: {
         'script.js': [
           'file1.js',
@@ -119,24 +125,22 @@ describe('MergeIntoFile', () => {
       transform: {
         'script.js': async (val) => `${val.toLowerCase()}`,
       },
-    });
-    instance.apply({
-      plugin: (event, fun) => {
-        const obj = {
-          assets: {},
-        };
-        fun(obj, (err) => {
-          expect(err).toEqual(undefined);
-          expect(obj.assets['script.js'].source()).toEqual('file_1_text\nfile_2_text');
-          expect(obj.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
-          done();
-        });
+    };
+    
+    const transformerOptions = getTransformerOptions({
+      options,
+      callback: (err) => {
+        expect(err).toEqual(undefined);
+        expect(transformerOptions.compilation.assets['script.js'].source()).toEqual('file_1_text\nfile_2_text');
+        expect(transformerOptions.compilation.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
+        done();
       },
     });
+    transformFiles(transformerOptions);
   });
 
   it('should succeed merging using mock content by using array instead of object', (done) => {
-    const instance = new MergeIntoSingle({
+    const options = {
       files: [
         {
           src: ['file1.js', 'file2.js'],
@@ -149,25 +153,23 @@ describe('MergeIntoFile', () => {
           dest: 'style.css',
         },
       ],
-    });
-    instance.apply({
-      plugin: (event, fun) => {
-        const obj = {
-          assets: {},
-        };
-        fun(obj, (err) => {
-          expect(err).toEqual(undefined);
-          expect(obj.assets['script.js'].source()).toEqual('file_1_text\nfile_2_text');
-          expect(obj.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
-          done();
-        });
+    };
+    
+    const transformerOptions = getTransformerOptions({
+      options,
+      callback: (err) => {
+        expect(err).toEqual(undefined);
+        expect(transformerOptions.compilation.assets['script.js'].source()).toEqual('file_1_text\nfile_2_text');
+        expect(transformerOptions.compilation.assets['style.css'].source()).toEqual('FILE_3_TEXT\nFILE_4_TEXT');
+        done();
       },
     });
+    transformFiles(transformerOptions);
   });
 
   it('should succeed merging using transform file name function', (done) => {
     const mockHash = 'xyz';
-    const instance = new MergeIntoSingle({
+    const options = {
       files: {
         'script.js': [
           'file1.js',
@@ -181,20 +183,18 @@ describe('MergeIntoFile', () => {
         ],
       },
       transformFileName: (fileNameBase, extension) => `${fileNameBase}${extension}?hash=${mockHash}`,
-    });
-    instance.apply({
-      plugin: (event, fun) => {
-        const obj = {
-          assets: {},
-        };
-        fun(obj, (err) => {
-          expect(err).toEqual(undefined);
-          expect(obj.assets[`script.js?hash=${mockHash}`]).toBeDefined();
-          expect(obj.assets[`other.deps.js?hash=${mockHash}`]).toBeDefined();
-          expect(obj.assets[`style.css?hash=${mockHash}`]).toBeDefined();
-          done();
-        });
+    };
+    
+    const transformerOptions = getTransformerOptions({
+      options,
+      callback: (err) => {
+        expect(err).toEqual(undefined);
+        expect(transformerOptions.compilation.assets[`script.js?hash=${mockHash}`]).toBeDefined();
+        expect(transformerOptions.compilation.assets[`other.deps.js?hash=${mockHash}`]).toBeDefined();
+        expect(transformerOptions.compilation.assets[`style.css?hash=${mockHash}`]).toBeDefined();
+        done();
       },
     });
+    transformFiles(transformerOptions);
   });
 });

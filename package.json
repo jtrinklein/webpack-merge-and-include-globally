@@ -10,6 +10,9 @@
     "lint": "eslint index.js index.test.js webpack.config.js --fix",
     "build-src": "babel index.js --out-file index.node6-compatible.js"
   },
+  "engines": {
+    "node": ">=16"
+  },
   "contributors": [],
   "devDependencies": {
     "@babel/cli": "^7.12.10",
@@ -37,12 +40,10 @@
     "webpack-dev-server": "^3.11.1"
   },
   "peerDependencies": {
-    "webpack": ">=1.0.0"
+    "webpack": ">=5.0.0"
   },
   "dependencies": {
-    "es6-promisify": "^6.1.1",
-    "glob": "^7.1.6",
-    "rev-hash": "^3.0.0"
+    "glob": "^10.3.4"
   },
   "keywords": [
     "webpack",
@@ -55,12 +56,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/markshapiro/webpack-merge-and-include-globally.git"
+    "url": "git+https://github.com/jtrinklein/webpack-merge-and-include-globally.git"
   },
   "bugs": {
-    "url": "https://github.com/markshapiro/webpack-merge-and-include-globally/issues"
+    "url": "https://github.com/jtrinklein/webpack-merge-and-include-globally/issues"
   },
-  "homepage": "https://github.com/markshapiro/webpack-merge-and-include-globally#readme",
+  "homepage": "https://github.com/jtrinklein/webpack-merge-and-include-globally#readme",
   "author": "Mark Shapiro",
   "license": "MIT"
 }
